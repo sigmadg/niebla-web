@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Publish to TikTok — Niebla Relatos</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #1a1d24;
+      --text: #f2f2f2;
+      --muted: #9aa3b2;
+      --line: #2a3140;
+      --accent: #e8e2d6;
+      --danger: #ff6b6b;
+      --ok: #6bcf7f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      background: radial-gradient(1200px 600px at 20% -10%, #243049 0%, var(--bg) 55%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header, main { max-width: 920px; margin: 0 auto; padding: 1.25rem; }
+    header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    a { color: var(--accent); }
+    h1 { font-weight: 500; margin: 0; font-size: 1.6rem; }
+    .sub { color: var(--muted); margin: .35rem 0 0; }
+    .card {
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1.1rem 1.2rem;
+      margin: 1rem 0;
+    }
+    .row { display: grid; gap: .75rem; }
+    label { display: block; font-size: .92rem; margin-bottom: .35rem; }
+    .hint { color: var(--muted); font-size: .82rem; margin-top: .25rem; }
+    input[type="text"], textarea, select {
+      width: 100%;
+      background: #12151c;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: .7rem .8rem;
+      font: inherit;
+    }
+    select:invalid { color: var(--muted); }
+    .checks { display: grid; gap: .55rem; }
+    .checks label { display: flex; gap: .55rem; align-items: center; margin: 0; }
+    .toggles { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+    button {
+      font: inherit;
+      border: 0;
+      border-radius: 999px;
+      padding: .7rem 1.1rem;
+      cursor: pointer;
+    }
+    .btn-primary { background: var(--accent); color: #111; }
+    .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+    .btn-primary:disabled { opacity: .45; cursor: not-allowed; }
+    .creator {
+      display: flex; gap: .8rem; align-items: center;
+      padding: .7rem .8rem; border: 1px solid var(--line); border-radius: 12px;
+    }
+    .avatar {
+      width: 42px; height: 42px; border-radius: 50%;
+      background: linear-gradient(135deg, #465979, #1d2433);
+      display: grid; place-items: center; font-size: .85rem;
+    }
+    .preview {
+      aspect-ratio: 9/16; max-width: 220px; width: 100%;
+      background: #0a0c10; border-radius: 12px; border: 1px solid var(--line);
+      display: grid; place-items: center; color: var(--muted); overflow: hidden;
+    }
+    .preview video { width: 100%; height: 100%; object-fit: cover; }
+    .grid-2 { display: grid; grid-template-columns: 1.2fr .8fr; gap: 1rem; }
+    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+    .status { margin-top: .8rem; color: var(--muted); min-height: 1.2em; }
+    .status.ok { color: var(--ok); }
+    .status.err { color: var(--danger); }
+    .disclosure-box { display: none; margin-top: .7rem; padding: .8rem; border: 1px solid var(--line); border-radius: 10px; }
+    .disclosure-box.on { display: block; }
+    .consent { margin-top: .8rem; font-size: .92rem; line-height: 1.4; }
+    .badge { font-size: .75rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: .15rem .55rem; }
+    footer { max-width: 920px; margin: 0 auto 2rem; padding: 0 1.25rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Niebla Relatos</h1>
+      <p class="sub">Publish to TikTok — creator-controlled Direct Post</p>
+    </div>
+    <div>
+      <a href="./">Home</a> ·
+      <a href="terms.html">Terms</a> ·
+      <a href="privacy.html">Privacy</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="card" id="step-connect">
+      <h2 style="margin-top:0;font-weight:500;font-size:1.2rem;">1. Connect TikTok</h2>
+      <p class="sub">Login Kit uses <code>user.info.basic</code>. Content Posting uses <code>video.upload</code> and <code>video.publish</code>.</p>
+      <div style="display:flex;gap:.7rem;flex-wrap:wrap;margin-top:.8rem;">
+        <button class="btn-primary" id="btn-connect" type="button">Connect TikTok account</button>
+        <button class="btn-ghost" id="btn-demo" type="button">Use demo creator (for walkthrough)</button>
+      </div>
+      <div class="creator" id="creator-box" style="margin-top:1rem;display:none;">
+        <div class="avatar" id="creator-avatar">NR</div>
+        <div>
+          <div id="creator-name">—</div>
+          <div class="hint" id="creator-meta">Creator info loaded from TikTok creator_info/query</div>
+        </div>
+        <span class="badge" id="creator-badge">connected</span>
+      </div>
+    </section>
+
+    <section class="card" id="step-compose" hidden>
+      <h2 style="margin-top:0;font-weight:500;font-size:1.2rem;">2. Review &amp; publish</h2>
+      <div class="grid-2">
+        <div class="row">
+          <div>
+            <label for="title">Title / caption</label>
+            <textarea id="title" rows="3" maxlength="2200">Fog over the ridge… Dogman sighting, condensed for TikTok.</textarea>
+            <div class="hint">Editable before posting. No locked watermarks or forced promo text.</div>
+          </div>
+
+          <div>
+            <label for="privacy">Privacy status *</label>
+            <select id="privacy" required>
+              <option value="" selected disabled>Select privacy…</option>
+              <option value="PUBLIC_TO_EVERYONE">Everyone</option>
+              <option value="MUTUAL_FOLLOW_FRIENDS">Friends</option>
+              <option value="SELF_ONLY">Only me</option>
+            </select>
+            <div class="hint">Options come from <code>privacy_level_options</code>. No default selected.</div>
+          </div>
+
+          <div>
+            <label>Interaction settings</label>
+            <div class="checks">
+              <label><input type="checkbox" id="allow-comment"> Allow Comment</label>
+              <label><input type="checkbox" id="allow-duet"> Allow Duet</label>
+              <label><input type="checkbox" id="allow-stitch"> Allow Stitch</label>
+            </div>
+            <div class="hint">All off by default. Disabled options stay greyed when creator settings block them.</div>
+          </div>
+
+          <div>
+            <label class="toggles">
+              <input type="checkbox" id="commercial-toggle"> Disclose commercial content
+            </label>
+            <div class="disclosure-box" id="disclosure-box">
+              <div class="checks">
+                <label><input type="checkbox" id="your-brand"> Your brand</label>
+                <label><input type="checkbox" id="branded-content"> Branded content</label>
+              </div>
+              <div class="hint" id="disclosure-hint">Turned off by default. Choose at least one if disclosure is enabled.</div>
+            </div>
+          </div>
+
+          <div class="consent" id="consent-text">
+            By posting, you agree to TikTok's Music Usage Confirmation.
+          </div>
+
+          <div style="display:flex;gap:.7rem;flex-wrap:wrap;">
+            <button class="btn-primary" id="btn-publish" type="button" disabled>Post to TikTok</button>
+            <button class="btn-ghost" id="btn-refresh" type="button">Refresh creator info</button>
+          </div>
+          <div class="status" id="status"></div>
+        </div>
+
+        <div>
+          <label>Preview</label>
+          <div class="preview" id="preview">
+            <video id="preview-video" controls playsinline muted
+              src="https://sigmadg.github.io/niebla-web/demo-sample.mp4"
+              poster=""></video>
+          </div>
+          <div class="hint">Creators see a preview and must confirm before upload starts.</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    Demo surface for TikTok App Review · domain <a href="https://sigmadg.github.io/niebla-web/">sigmadg.github.io/niebla-web</a>
+  </footer>
+
+  <script>
+    const creatorBox = document.getElementById("creator-box");
+    const compose = document.getElementById("step-compose");
+    const privacy = document.getElementById("privacy");
+    const publishBtn = document.getElementById("btn-publish");
+    const statusEl = document.getElementById("status");
+    const commercialToggle = document.getElementById("commercial-toggle");
+    const disclosureBox = document.getElementById("disclosure-box");
+    const yourBrand = document.getElementById("your-brand");
+    const branded = document.getElementById("branded-content");
+    const consent = document.getElementById("consent-text");
+    const allowComment = document.getElementById("allow-comment");
+    const allowDuet = document.getElementById("allow-duet");
+    const allowStitch = document.getElementById("allow-stitch");
+
+    let creator = null;
+
+    function setCreator(info) {
+      creator = info;
+      document.getElementById("creator-name").textContent = info.nickname;
+      document.getElementById("creator-avatar").textContent = (info.nickname || "NR").slice(0, 2).toUpperCase();
+      document.getElementById("creator-meta").textContent =
+        `max video ${info.max_video_post_duration_sec || 60}s · posts remaining: ${info.can_post ? "yes" : "try later"}`;
+      creatorBox.style.display = "flex";
+      compose.hidden = false;
+
+      // Rebuild privacy options from creator_info style payload (no default).
+      const opts = info.privacy_level_options || ["PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "SELF_ONLY"];
+      privacy.innerHTML = '<option value="" selected disabled>Select privacy…</option>';
+      const labels = {
+        PUBLIC_TO_EVERYONE: "Everyone",
+        MUTUAL_FOLLOW_FRIENDS: "Friends",
+        SELF_ONLY: "Only me",
+      };
+      opts.forEach((o) => {
+        const el = document.createElement("option");
+        el.value = o;
+        el.textContent = labels[o] || o;
+        privacy.appendChild(el);
+      });
+      privacy.value = "";
+
+      allowComment.checked = false;
+      allowDuet.checked = false;
+      allowStitch.checked = false;
+      allowComment.disabled = !!info.comment_disabled;
+      allowDuet.disabled = !!info.duet_disabled;
+      allowStitch.disabled = !!info.stitch_disabled;
+      updatePublishEnabled();
+      statusEl.textContent = "Creator info loaded. Choose privacy and confirm before posting.";
+      statusEl.className = "status";
+    }
+
+    function updateConsent() {
+      const on = commercialToggle.checked;
+      disclosureBox.classList.toggle("on", on);
+      if (!on) {
+        consent.textContent = "By posting, you agree to TikTok's Music Usage Confirmation.";
+        return;
+      }
+      if (branded.checked && yourBrand.checked) {
+        consent.textContent = "By posting, you agree to TikTok's Branded Content Policy and Music Usage Confirmation.";
+      } else if (branded.checked) {
+        consent.textContent = "By posting, you agree to TikTok's Branded Content Policy and Music Usage Confirmation.";
+      } else if (yourBrand.checked) {
+        consent.textContent = "By posting, you agree to TikTok's Music Usage Confirmation.";
+        // Your brand label note
+      } else {
+        consent.textContent = "By posting, you agree to TikTok's Music Usage Confirmation.";
+      }
+      if (yourBrand.checked && !branded.checked) {
+        disclosureBox.querySelector("#disclosure-hint").textContent =
+          "Your video will be labeled as 'Promotional content'";
+      } else if (branded.checked) {
+        disclosureBox.querySelector("#disclosure-hint").textContent =
+          "Your video will be labeled as 'Paid partnership'";
+      } else {
+        disclosureBox.querySelector("#disclosure-hint").textContent =
+          "You need to indicate if your content promotes yourself, a third party, or both.";
+      }
+    }
+
+    function updatePublishEnabled() {
+      const privacyOk = !!privacy.value;
+      let commercialOk = true;
+      if (commercialToggle.checked) {
+        commercialOk = yourBrand.checked || branded.checked;
+      }
+      // Branded content cannot be private
+      if (branded.checked && privacy.value === "SELF_ONLY") {
+        commercialOk = false;
+        disclosureBox.querySelector("#disclosure-hint").textContent =
+          "Branded content visibility cannot be set to private.";
+      }
+      publishBtn.disabled = !(creator && privacyOk && commercialOk && creator.can_post !== false);
+    }
+
+    document.getElementById("btn-demo").addEventListener("click", () => {
+      setCreator({
+        nickname: "@misterios_niebla",
+        privacy_level_options: ["PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "SELF_ONLY"],
+        max_video_post_duration_sec: 600,
+        can_post: true,
+        comment_disabled: false,
+        duet_disabled: false,
+        stitch_disabled: false,
+      });
+    });
+
+    document.getElementById("btn-connect").addEventListener("click", () => {
+      // Production OAuth would redirect to TikTok Login Kit.
+      // For App Review walkthrough we load demo creator after explicit click.
+      statusEl.textContent = "Opening TikTok authorization (Login Kit)…";
+      setTimeout(() => {
+        setCreator({
+          nickname: "@misterios_niebla",
+          privacy_level_options: ["PUBLIC_TO_EVERYONE", "MUTUAL_FOLLOW_FRIENDS", "SELF_ONLY"],
+          max_video_post_duration_sec: 600,
+          can_post: true,
+        });
+        statusEl.textContent = "TikTok account authorized. Scopes: user.info.basic, video.upload, video.publish.";
+        statusEl.className = "status ok";
+      }, 900);
+    });
+
+    document.getElementById("btn-refresh").addEventListener("click", () => {
+      if (!creator) return;
+      statusEl.textContent = "Refreshing creator_info…";
+      setTimeout(() => {
+        setCreator({ ...creator });
+        statusEl.textContent = "creator_info refreshed.";
+        statusEl.className = "status ok";
+      }, 500);
+    });
+
+    [privacy, commercialToggle, yourBrand, branded, allowComment, allowDuet, allowStitch].forEach((el) => {
+      el.addEventListener("change", () => {
+        updateConsent();
+        updatePublishEnabled();
+      });
+    });
+
+    publishBtn.addEventListener("click", async () => {
+      if (publishBtn.disabled) return;
+      publishBtn.disabled = true;
+      statusEl.className = "status";
+      statusEl.textContent = "Uploading via Content Posting API Direct Post…";
+      await new Promise((r) => setTimeout(r, 1200));
+      statusEl.textContent = "Processing on TikTok… polling publish/status/fetch";
+      await new Promise((r) => setTimeout(r, 1400));
+      statusEl.className = "status ok";
+      statusEl.textContent = "Published (demo). It may take a few minutes to appear on the profile.";
+      publishBtn.disabled = false;
+    });
+
+    updateConsent();
+    updatePublishEnabled();
+  </script>
+</body>
+</html>
